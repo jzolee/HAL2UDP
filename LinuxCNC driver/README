@@ -1,4 +1,4 @@
 install linuxcnc-uspace-dev
 install build-essential
 
-sudo halcompile --install udp.comp
+halcompile --install udp.comp

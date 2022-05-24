@@ -49,5 +49,70 @@ ESP-WROOM-32 dev board + W5500 ethernet module<br>
 `GPIO 34 <- IN-04 {no pullup!}`<br>
 `GPIO 35 <- IN-05 {no pullup!}`<br>
 `GPIO 36 <- IN-06 {no pullup!}`<br>
-`GPIO 39 <- IN-07 {no pullup!}`<br>'
+`GPIO 39 <- IN-07 {no pullup!}`<br>
+### LinuxCNC HAL pins
+udp.0.position_cmd (in - float) commanded position in position units<br>
+udp.1.position_cmd<br>
+udp.2.position_cmd<br>
+
+udp.0.velocity_cmd (in - float) commanded velocity in position units/s<br>
+udp.1.velocity_cmd<br>
+udp.2.velocity_cmd<br>
+
+udp.0.position_fb (out - float) feedback position in position units<br>
+udp.1.position_fb<br>
+udp.2.position_fb<br>
+
+udp.0.velocity_fb (out - float) feedback velocity in position units/s<br>
+udp.1.velocity_fb<br>
+udp.2.velocity_fb<br>
+
+udp.out.00 (in - bit) digital output<br>
+udp.out.01<br>
+udp.out.02<br>
+udp.out.03<br>
+udp.out.04<br>
+udp.out.05<br>
+
+udp.pwm.00 (in - float) PWM output 0...1<br>
+udp.pwm.01<br>
+udp.pwm.02<br>
+udp.pwm.03<br>
+udp.pwm.04<br>
+udp.pwm.05<br>
+
+udp.in.00 (out - bit) digital input<br>
+udp.in.01<br>
+udp.in.02<br>
+udp.in.03<br>
+udp.in.04<br>
+udp.in.05<br>
+udp.in.06<br>
+udp.in.07<br>
+
+udp.ready (out - bit) module state<br>
+udp.enable (in - bit) module enable<br>
+udp.packets (out - s32) lost packets<br>
+### LinuxCNC HAL parameters
+udp.0.dirsetup (rw - u32) minimum time from a direction change to the beginning of the next step pulse in ns<br>
+udp.1.dirsetup<br>
+udp.2.dirsetup<br>
+
+udp.0.scale (rw - float) steps per position unit<br>
+udp.1.scale<br>
+udp.2.scale<br>
+
+udp.0.accel (rw - float) acceleration in position units/s<sup>2</sup><br>
+udp.1.accel<br>
+udp.2.accel<br>
+
+udp.pwm.00.freq (rw - u32) PWM frequency in Hz 0..65000<br>
+udp.pwm.01.freq<br>
+udp.pwm.02.freq<br>
+udp.pwm.03.freq<br>
+udp.pwm.04.freq<br>
+udp.pwm.05.freq<br>
+### PWM usage
+If the udp.pwm.xx.freq parameter is set to 0, the udp.out.xx pin works and the udp.pwm.xx pin does not.
+If the value of the udp.pwm.xx.freq parameter is not 0, the udp.out.xx pin does not work and the udp.pwm.xx pin does.
 

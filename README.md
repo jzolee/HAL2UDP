@@ -12,6 +12,8 @@ External step generator and IO interface for LinuxCNC over Ethernet with dual-co
 * halcompile --install udp.comp
 
 ### Hardware:
+ESP-WROOM-32 dev board + W5500 ethernet module
+
 * ESP32 3v3 -- 3.3v W5500
 * ESP32 GND -- GND  W5500
  

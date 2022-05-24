@@ -1,0 +1,3 @@
+Install linuxcnc-uspace-dev
+
+At the command prompt, type halcompile --install udp.comp

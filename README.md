@@ -5,6 +5,8 @@ set your eth0 to 192.168.96.55
 the Esp32 with Ethernet will have 192.168.96.54
 
 LinuxCNC driver:
+================
 install linuxcnc-uspace-dev
+install build-essential
 
 halcompile --install udp.comp

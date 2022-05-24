@@ -36,7 +36,7 @@ pin out s32     packets             = 0     "Lost packets";
 param   rw  u32     #.dirsetup[3]   = 1     "Minimum time from a direction change to the beginning of the next step pulse in ns";
 param   rw  float   #.scale[3]      = 1.0   "Steps per position unit";
 param   rw  float   #.accel[3]      = 1.0   "Acceleration in position units/s2";
-param   rw  u32     pwm.##.freq[6]  = 0     "PWM frequency in Hz";
+param   rw  u32     pwm.##.freq[6]  = 0     "PWM frequency in Hz 0...65000";
 
 /*-------------------------------------*/
 

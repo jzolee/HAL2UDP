@@ -113,6 +113,6 @@ udp.pwm.03.freq<br>
 udp.pwm.04.freq<br>
 udp.pwm.05.freq<br>
 ### PWM usage
-If the udp.pwm.xx.freq parameter is set to 0, the udp.out.xx pin works and the udp.pwm.xx pin does not.
-If the value of the udp.pwm.xx.freq parameter is not 0, the udp.out.xx pin does not work and the udp.pwm.xx pin does.
+If the udp.pwm.xx.freq parameter is set to 0, the udp.out.xx pin works and the udp.pwm.xx pin does not.<br>
+If the value of the udp.pwm.xx.freq parameter is not 0, the udp.out.xx pin does not work and the udp.pwm.xx pin does.<br>
 

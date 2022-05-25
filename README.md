@@ -1,7 +1,9 @@
 # HAL2UDP
 External step generator and IO interface for LinuxCNC over Ethernet with dual-core ESP32 and W5500 modules.<br>
 
-The hardware is connected to LinuxCNC over Ethernet. The controller operates in position mode at low speed and at higher speeds in velocity mode.
+The hardware is connected to LinuxCNC over Ethernet. The controller operates in position mode at low speed and at higher speeds in velocity mode.<br>
+
+[video on operation](https://youtu.be/UXWcg7PwRJs)
 
 ### Features
 * **step** and **dir** signals for 3 axes

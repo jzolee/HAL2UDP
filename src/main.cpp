@@ -89,7 +89,7 @@
  *  39      OK              --          input only, no pullup
  */
 
-#include <arduino.h>
+#include <Arduino.h>
 
 #include <Ethernet.h>
 #include <EthernetUdp.h>

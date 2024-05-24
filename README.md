@@ -5,6 +5,11 @@ The hardware is connected to LinuxCNC over Ethernet. The controller operates in 
 
 [video on operation](https://youtu.be/UXWcg7PwRJs)
 
+### Changelog
+The INT pin of the W5500 module has been connected to the GPIO39 pin of the esp32 module.
+Therefore, the number of inputs is reduced to 7.
+The code has been optimized to be faster, so a higher step frequency is possible.
+
 ### Features
 * **step** and **dir** signals for 3 axes
 * 7 input pins

@@ -7,9 +7,9 @@ The hardware is connected to LinuxCNC over Ethernet. The controller operates in 
 
 ### Features
 * **step** and **dir** signals for 3 axes
-* 8 input pins
+* 7 input pins
 * 6 output pins, any can be pwm signal
-* step frequency up to 40 kHz
+* step frequency up to 60 kHz
 ### Install
 Clone this repository and open it with platformIO
 ### Settings
@@ -51,7 +51,7 @@ ESP-WROOM-32 dev board + W5500 ethernet module<br>
 `GPIO 34 <- IN-04 {no pullup!}`<br>
 `GPIO 35 <- IN-05 {no pullup!}`<br>
 `GPIO 36 <- IN-06 {no pullup!}`<br>
-`GPIO 39 <- IN-07 {no pullup!}`<br>
+`GPIO 39 <- W5500 INT`<br>
 ### LinuxCNC HAL pins
 udp.0.position_cmd (in - float) commanded position in position units<br>
 udp.1.position_cmd<br>
@@ -90,7 +90,6 @@ udp.in.03<br>
 udp.in.04<br>
 udp.in.05<br>
 udp.in.06<br>
-udp.in.07<br>
 
 udp.ready (out - bit) module state<br>
 udp.enable (in - bit) module enable<br>

@@ -58,3 +58,6 @@ int pwm_enable[6] = { 0 };
 uint32_t accelStep[3] = { 0 };
 
 TaskHandle_t comm_task_handle = NULL;
+
+SemaphoreHandle_t startMutex = NULL;
+

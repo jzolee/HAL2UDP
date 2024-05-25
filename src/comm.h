@@ -158,6 +158,8 @@ static void IRAM_ATTR watchdog_task(void* arg)
 
 static void IRAM_ATTR comm_task(void* arg)
 {
+    xSemaphoreTake (startMutex, portMAX_DELAY);
+    
     pinMode(IN_00_PIN, INPUT_PULLUP);
     pinMode(IN_01_PIN, INPUT_PULLUP);
     pinMode(IN_02_PIN, INPUT_PULLUP);
@@ -187,6 +189,8 @@ static void IRAM_ATTR comm_task(void* arg)
 
     // Configure socket_isr() as the interrupt service routine upon falling edge on W5500_INT_GPIO pin:
     attachInterrupt(digitalPinToInterrupt(W5500_INT_GPIO), socket_isr, FALLING); // For some reason, socket_isr gets called by this line...
+
+    xSemaphoreGive (startMutex);
 
     for (;;) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);

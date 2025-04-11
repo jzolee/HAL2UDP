@@ -1,0 +1,188 @@
+/*    This is a component of LinuxCNC for external step generator over Ethernet
+ *    Copyright 2021 Juhász Zoltán <juhasz.zoltan at freemail dot hu>
+ *
+ *    version: 20250409
+ *
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+ 
+ component udp "HAL2UDP";
+
+ pin in  float   stepgen.#.position_cmd[3]   = 0.0   "Commanded position in position units";
+ pin in  float   stepgen.#.velocity_cmd[3]   = 0.0   "Commanded velocity in position units/s";
+ pin out float   stepgen.#.position_fb[3]    = 0.0   "Feedback position in position units";
+ pin out float   stepgen.#.velocity_fb[3]    = 0.0   "Feedback velocity in position units/s";
+
+ pin in  bit     out.#[6]                    = 0     "Digital output";
+ pin in  float   pwm.#[6]                    = 0.0   "PWM output 0...1";
+ pin out bit     in.#[7]                     = 0     "Digital inputs";
+
+ pin out bit     ready                       = 0     "Module state";
+ pin in  bit     enable                      = 0     "Module enable";
+ pin out s32     lost                        = 0     "Lost packets";
+
+ param rw  u32   stepgen.#.dirsetup[3]       = 1     "Minimum time from a direction change to the beginning of the next step pulse in ns";
+ param rw  float stepgen.#.position_scale[3] = 1.0   "Steps per position unit";
+ param rw  float stepgen.#.maxaccel[3]       = 1.0   "Acceleration in position units/s2";
+ param rw  u32   pwm.#.freq[6]               = 0     "PWM frequency in Hz 0...65000";
+ 
+/*---------------- ---------------------*/
+
+option singleton;
+option extra_setup;
+option extra_cleanup;
+
+function _;
+
+license "GPL"; // indicates GPL v2 or later
+;;
+
+/*-------------------------------------*/
+
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#define BUFSIZE 80
+
+#pragma pack(push, 1)
+
+union {
+    uint8_t rxbuf[BUFSIZE];
+    struct {
+        int32_t pos[3];
+        float   vel[3];
+        uint8_t control;
+        uint8_t io;
+    } fb;
+} Recv = { 0 };
+
+union {
+    uint8_t txbuf[BUFSIZE];
+    struct {
+        union {
+            int32_t pos[3];
+            int32_t dirsetup[3];
+            int32_t accel[3];
+        };
+        float vel[3];
+        uint8_t control;
+        uint8_t io;
+        uint16_t pwm[6];
+    } cmd;
+} Send = { 0 };
+
+#pragma pack(pop)
+
+#define CTRL_DIRSETUP 0b00000001
+#define CTRL_ACCEL    0b00000010
+#define CTRL_PWMFREQ  0b00000100
+#define CTRL_READY    0b01000000
+#define CTRL_ENABLE   0b10000000
+
+#define SEND_TIMEOUT_US 10
+#define RECV_TIMEOUT_US 10
+#define REMOTE_IP "192.168.96.54"
+#define REMOTE_PORT 58427
+#define LOCAL_PORT 58428
+
+int udpSocket, n;
+struct sockaddr_in remoteAddr, localAddr;
+struct timeval timeout;
+
+/*-------------------------------------*/
+
+EXTRA_SETUP()
+{
+    // Create a UDP socket
+    udpSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+    bzero((void*)&remoteAddr, sizeof(remoteAddr));
+    remoteAddr.sin_family = AF_INET;
+    remoteAddr.sin_addr.s_addr = inet_addr(REMOTE_IP);
+    remoteAddr.sin_port = htons(REMOTE_PORT);
+
+    bzero((void*)&localAddr, sizeof(localAddr));
+    localAddr.sin_family = AF_INET;
+    localAddr.sin_addr.s_addr = INADDR_ANY;
+    localAddr.sin_port = htons(LOCAL_PORT);
+
+    // bind the socket to local port
+    bind(udpSocket, (struct sockaddr*)&localAddr, sizeof(localAddr));
+
+    timeout.tv_sec = 0;
+    timeout.tv_usec = RECV_TIMEOUT_US;
+    setsockopt(udpSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+    timeout.tv_usec = SEND_TIMEOUT_US;
+    setsockopt(udpSocket, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
+
+    return 0;
+}
+
+EXTRA_CLEANUP()
+{
+    close(udpSocket);
+}
+
+FUNCTION(_)
+{
+    bzero((void*)&Send.cmd, sizeof(Send.cmd));
+    if (enable) Send.cmd.control = CTRL_ENABLE;
+    if (ready) {
+        Send.cmd.control |= CTRL_READY;
+        for (int i = 0; i < 3; i++) {
+            Send.cmd.vel[i] = (float)stepgen_velocity_cmd(i) * (float)stepgen_position_scale(i);
+            Send.cmd.pos[i] = (float)stepgen_position_cmd(i) * (float)stepgen_position_scale(i);
+        }
+        for (int i = 0; i < 6; i++) {
+            if (out(i)) Send.cmd.io |= 1 << i;
+            Send.cmd.pwm[i] = (float)pwm(i) * 1023.0f;
+            if (Send.cmd.pwm[i] > 1023) Send.cmd.pwm[i] = 1023;
+        }
+    } else {
+        if (!(Recv.fb.control & CTRL_DIRSETUP)) {
+            Send.cmd.control = CTRL_DIRSETUP;
+            for (int i = 0; i < 3; i++) Send.cmd.dirsetup[i] = stepgen_dirsetup(i);
+        } else if (!(Recv.fb.control & CTRL_ACCEL)) {
+            Send.cmd.control = CTRL_ACCEL;
+            for (int i = 0; i < 3; i++) Send.cmd.accel[i] = (float)stepgen_maxaccel(i) * (float)stepgen_position_scale(i);
+        } else if (!(Recv.fb.control & CTRL_PWMFREQ)) {
+            Send.cmd.control = CTRL_PWMFREQ;
+            for (int i = 0; i < 6; i++) Send.cmd.pwm[i] = pwm_freq(i);
+        }
+    }
+    uint8_t chk = 71;
+    for (int i = 0; i < sizeof(Send.cmd); i++) chk ^= Send.txbuf[i];
+    Send.txbuf[sizeof(Send.cmd)] = chk;
+    n = sendto(udpSocket, Send.txbuf, sizeof(Send.cmd) + 1, 0, &remoteAddr, sizeof(remoteAddr));
+    int lp = lost;
+    lp++;
+    if (n < 0) ready = 0;
+    else {
+        n = recv(udpSocket, Recv.rxbuf, sizeof(Recv.fb), 0);
+        if (n < 0) ready = 0;
+        else {
+            lp--;
+            for (int i = 0; i < 3; i++) {
+                stepgen_position_fb(i) = Recv.fb.pos[i] / (float)stepgen_position_scale(i);
+                stepgen_velocity_fb(i) = Recv.fb.vel[i] / (float)stepgen_position_scale(i);
+            }
+            for (int i = 0; i < 7; i++)
+                in(i) = Recv.fb.io & (1 << i);
+            ready = Recv.fb.control & CTRL_READY;
+        }
+    }
+    lost = lp;
+}

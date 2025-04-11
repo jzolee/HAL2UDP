@@ -66,21 +66,21 @@ ESP-WROOM-32 dev board + W5500 ethernet module<br>
 `GPIO 36 <- IN-06 {no pullup!}`<br>
 `GPIO 39 <- W5500 INT`<br>
 ### LinuxCNC HAL pins
-udp.stepgen.0.position_cmd (in - float) commanded position in position units<br>
-udp.stepgen.1.position_cmd<br>
-udp.stepgen.2.position_cmd<br>
+udp.stepgen.0.position-cmd (in - float) commanded position in position units<br>
+udp.stepgen.1.position-cmd<br>
+udp.stepgen.2.position-cmd<br>
 
-udp.stepgen.0.velocity_cmd (in - float) commanded velocity in position units/s<br>
-udp.stepgen.1.velocity_cmd<br>
-udp.stepgen.2.velocity_cmd<br>
+udp.stepgen.0.velocity-cmd (in - float) commanded velocity in position units/s<br>
+udp.stepgen.1.velocity-cmd<br>
+udp.stepgen.2.velocity-cmd<br>
 
-udp.stepgen.0.position_fb (out - float) feedback position in position units<br>
-udp.stepgen.1.position_fb<br>
-udp.stepgen.2.position_fb<br>
+udp.stepgen.0.position-fb (out - float) feedback position in position units<br>
+udp.stepgen.1.position-fb<br>
+udp.stepgen.2.position-fb<br>
 
-udp.0.velocity_fb (out - float) feedback velocity in position units/s<br>
-udp.1.velocity_fb<br>
-udp.2.velocity_fb<br>
+udp.stepgen.0.velocity-fb (out - float) feedback velocity in position units/s<br>
+udp.stepgen.1.velocity-fb<br>
+udp.stepgen.2.velocity-fb<br>
 
 udp.out.0 (in - bit) digital output<br>
 udp.out.1<br>

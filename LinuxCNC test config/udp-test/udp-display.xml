@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pyvcp>
+	<labelframe text="udp-thread time [ns]">
+		<s32 halpin="udp-time" font='("Helvetica",12)'/>
+	</labelframe>
+	<labelframe text="servo-thread time [ns]">
+		<s32 halpin="servo-time" font='("Helvetica",12)'/>
+	</labelframe>
+	<labelframe text="UDP lost packets">
+		<s32 halpin="lost-packets" font='("Helvetica",12)'/>
+	</labelframe>
+	<labelframe text="following error [mm]">
+		<number halpin="f-error-0" format="4.3f" font='("Helvetica",12)'/>
+		<number halpin="f-error-1" format="4.3f" font='("Helvetica",12)'/>
+		<number halpin="f-error-2" format="4.3f" font='("Helvetica",12)'/>
+	</labelframe>
+</pyvcp>

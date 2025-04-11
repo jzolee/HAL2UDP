@@ -1,0 +1,11 @@
+
+net udp-time       udp-thread.time     pyvcp.udp-time
+net servo-time     servo-thread.time   pyvcp.servo-time
+net lost-packets   udp.lost            pyvcp.lost-packets
+
+net f-error-x      joint.0.f-error     pyvcp.f-error-0
+net f-error-y      joint.1.f-error     pyvcp.f-error-1
+net f-error-z      joint.2.f-error     pyvcp.f-error-2
+        
+
+

@@ -10,6 +10,8 @@
 #include "globals.h"
 #include "hardware.h"
 #include "w5500.h"
+#include "io.h"
+#include "pwm.h"
 
 void IRAM_ATTR watchdog_task(void* arg)
 {
@@ -74,28 +76,7 @@ void IRAM_ATTR commandHandler()
             fb.control |= CTRL_PWMFREQ;
             for (int i = 0; i < 6; ++i) {
                 if (cmd.pwm[i] != 0) {
-                    // Prepare and then apply the LEDC PWM timer configuration
-                    ledc_timer_config_t ledc_timer = {
-                        .speed_mode = LEDC_HIGH_SPEED_MODE,
-                        .duty_resolution = LEDC_TIMER_10_BIT,
-                        .timer_num = LEDC_TIMER_3,
-                        .freq_hz = cmd.pwm[i],  // Set output frequency
-                        .clk_cfg = LEDC_AUTO_CLK
-                    };
-                    ledc_timer_config(&ledc_timer);
-
-                    // Prepare and then apply the LEDC PWM channel configuration
-                    ledc_channel_config_t ledc_channel = {
-                        .speed_mode = LEDC_HIGH_SPEED_MODE,
-                        .channel = i,
-                        .timer_sel = LEDC_TIMER_3,
-                        .intr_type = LEDC_INTR_DISABLE,
-                        .gpio_num = out_pins[i],
-                        .duty = 0, // Set duty to 0%
-                        .hpoint = 0
-                    };
-                    ledc_channel_config(&ledc_channel);
-
+                    configure_pwm_channel(i, out_pins[i], cmd.pwm[i]);
                     pwm_enable[i] = 1;
                 } else {
                     gpio_set_direction((gpio_num_t)out_pins[i], GPIO_MODE_OUTPUT);

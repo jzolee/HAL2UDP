@@ -5,6 +5,8 @@
 #include "esp_attr.h"
 
 #include "globals.h"
+#include "hardware.h"
+#include "pwm.h"
 
 void IRAM_ATTR outputHandler(void)
 {
@@ -17,12 +19,10 @@ void IRAM_ATTR outputHandler(void)
             if (enable) {
                 if (last_pwm[i] != cmd.pwm[i]) {
                     last_pwm[i] = cmd.pwm[i];
-                    ledc_set_duty(LEDC_HIGH_SPEED_MODE, i, last_pwm[i]); // Set duty to
-                    ledc_update_duty(LEDC_HIGH_SPEED_MODE, i); // Update duty to apply the new value
+                    set_pwm_duty(i, last_pwm[i]);
                 }
             } else {
-                ledc_set_duty(LEDC_HIGH_SPEED_MODE, i, 0); // Set duty to 0
-                ledc_update_duty(LEDC_HIGH_SPEED_MODE, i); // Update duty to apply the new value
+                set_pwm_duty(i, 0);
                 last_pwm[i] = 0;
             }
         } else {

@@ -10,11 +10,11 @@
 
 void IRAM_ATTR outputHandler(void)
 {
-    static uint16_t last_pwm[6] = { 0 };
+    static uint16_t last_pwm[4] = { 0 };
     uint8_t out = cmd.io;
     bool enable = cmd.control & CTRL_ENABLE;
 
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 4; ++i) {
         if (pwm_enable[i] != 0) {
             if (enable) {
                 if (last_pwm[i] != cmd.pwm[i]) {
@@ -38,12 +38,6 @@ void IRAM_ATTR outputHandler(void)
                 break;
             case 3:
                 enable ? ((out & IO_03) ? OUT_03_H : OUT_03_L) : OUT_03_L;
-                break;
-            case 4:
-                enable ? ((out & IO_04) ? OUT_04_H : OUT_04_L) : OUT_04_L;
-                break;
-            case 5:
-                enable ? ((out & IO_05) ? OUT_05_H : OUT_05_L) : OUT_05_L;
             }
         }
     }

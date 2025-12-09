@@ -23,47 +23,47 @@
 #define IO_06 0b01000000
 #define IO_07 0b10000000
 
-const uint8_t out_pins[6] = { OUT_00_PIN, OUT_01_PIN, OUT_02_PIN, OUT_03_PIN, OUT_04_PIN, OUT_05_PIN };
+const uint8_t out_pins[6] = { OUT_00_PIN, OUT_01_PIN, OUT_02_PIN, OUT_03_PIN };
 
 #pragma pack(push, 1)
 
 struct {
     union {
-        int32_t pos[3];
-        int32_t dirSetup[3];
-        int32_t accel[3];
+        int32_t pos[4];
+        int32_t dirSetup[4];
+        int32_t accel[4];
     };
-    float vel[3];
+    float vel[4];
     uint8_t control;
     uint8_t io;
-    uint16_t pwm[6];
+    uint16_t pwm[4];
 } cmd = { 0 };
 
 struct {
-    int32_t pos[3];
-    float vel[3];
+    int32_t pos[4];
+    float vel[4];
     uint8_t control;
     uint8_t io;
 } fb = { 0 };
 
 #pragma pack(pop)
 
-volatile uint32_t dirSetup[3] = { 1000, 1000, 1000 }; // x 25 nanosec
-volatile float accel_x2[3] = { 1000.0f, 1000.0f, 1000.0f }; // acceleration*2 step/sec2
+volatile uint32_t dirSetup[4] = { 1000, 1000, 1000, 1000 }; // x 25 nanosec
+volatile float accel_x2[4] = { 1000.0f, 1000.0f, 1000.0f, 1000.0f }; // acceleration*2 step/sec2
 
-volatile uint32_t cmd_T_half[3] = { 0 };
-volatile int cmd_dir[3] = { 0 };
+volatile uint32_t cmd_T_half[4] = { 0 };
+volatile int cmd_dir[4] = { 0 };
 
-volatile uint32_t T_half[3] = { 0 };
-volatile int dir[3] = { 0 };
-volatile int dirChange[3] = { 0 };
-volatile int math[3] = { 0 };
+volatile uint32_t T_half[4] = { 0 };
+volatile int dir[4] = { 0 };
+volatile int dirChange[4] = { 0 };
+volatile int math[4] = { 0 };
 
 volatile uint32_t watchdog = 0;
 
-int pwm_enable[6] = { 0 };
+int pwm_enable[4] = { 0 };
 
-uint32_t accelStep[3] = { 0 };
+uint32_t accelStep[4] = { 0 };
 
 TaskHandle_t comm_task_handle = NULL;
 

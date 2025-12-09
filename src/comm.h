@@ -40,7 +40,7 @@ void IRAM_ATTR commandHandler()
 {
     if (cmd.control & CTRL_READY) {
 
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 4; ++i) {
             if (cmd.vel[i] > 0.0f) {
                 cmd_dir[i] = 1;
                 cmd_T_half[i] = (uint32_t)(20000000.0f / cmd.vel[i]);
@@ -64,17 +64,17 @@ void IRAM_ATTR commandHandler()
 
         } else if (cmd.control & CTRL_DIRSETUP) {
             fb.control |= CTRL_DIRSETUP;
-            for (int i = 0; i < 3; ++i)
+            for (int i = 0; i < 4; ++i)
                 dirSetup[i] = cmd.dirSetup[i] / 25; //   25ns / timer tic
 
         } else if (cmd.control & CTRL_ACCEL) {
             fb.control |= CTRL_ACCEL;
-            for (int i = 0; i < 3; ++i)
+            for (int i = 0; i < 4; ++i)
                 accel_x2[i] = (float)cmd.accel[i] * 2.0f;
 
         } else if (cmd.control & CTRL_PWMFREQ) {
             fb.control |= CTRL_PWMFREQ;
-            for (int i = 0; i < 6; ++i) {
+            for (int i = 0; i < 4; ++i) {
                 if (cmd.pwm[i] != 0) {
                     configure_pwm_channel(i, out_pins[i], cmd.pwm[i]);
                     pwm_enable[i] = 1;
@@ -121,7 +121,7 @@ void IRAM_ATTR comm_task(void* arg)
     for (;;) {
         
         inputHandler();
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 4; ++i) {
             uint32_t t = T_half[i];
             if (t) {
                 if (dir[i])

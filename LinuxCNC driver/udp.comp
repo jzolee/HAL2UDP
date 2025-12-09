@@ -1,7 +1,7 @@
 /*    This is a component of LinuxCNC for external step generator over Ethernet
  *    Copyright 2021 Juhász Zoltán <juhasz.zoltan at freemail dot hu>
  *
- *    version: 20250409
+ *    version: 20251209 (4 axis)
  *
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -20,23 +20,23 @@
  
  component udp "HAL2UDP";
 
- pin in  float   stepgen.#.position_cmd[3]   = 0.0   "Commanded position in position units";
- pin in  float   stepgen.#.velocity_cmd[3]   = 0.0   "Commanded velocity in position units/s";
- pin out float   stepgen.#.position_fb[3]    = 0.0   "Feedback position in position units";
- pin out float   stepgen.#.velocity_fb[3]    = 0.0   "Feedback velocity in position units/s";
+ pin in  float   stepgen.#.position_cmd[4]   = 0.0   "Commanded position in position units";
+ pin in  float   stepgen.#.velocity_cmd[4]   = 0.0   "Commanded velocity in position units/s";
+ pin out float   stepgen.#.position_fb[4]    = 0.0   "Feedback position in position units";
+ pin out float   stepgen.#.velocity_fb[4]    = 0.0   "Feedback velocity in position units/s";
 
- pin in  bit     out.#[6]                    = 0     "Digital output";
- pin in  float   pwm.#[6]                    = 0.0   "PWM output 0...1";
+ pin in  bit     out.#[4]                    = 0     "Digital output";
+ pin in  float   pwm.#[4]                    = 0.0   "PWM output 0...1";
  pin out bit     in.#[7]                     = 0     "Digital inputs";
 
  pin out bit     ready                       = 0     "Module state";
  pin in  bit     enable                      = 0     "Module enable";
  pin out s32     lost                        = 0     "Lost packets";
 
- param rw  u32   stepgen.#.dirsetup[3]       = 1     "Minimum time from a direction change to the beginning of the next step pulse in ns";
- param rw  float stepgen.#.position_scale[3] = 1.0   "Steps per position unit";
- param rw  float stepgen.#.maxaccel[3]       = 1.0   "Acceleration in position units/s2";
- param rw  u32   pwm.#.freq[6]               = 0     "PWM frequency in Hz 0...65000";
+ param rw  u32   stepgen.#.dirsetup[4]       = 1     "Minimum time from a direction change to the beginning of the next step pulse in ns";
+ param rw  float stepgen.#.position_scale[4] = 1.0   "Steps per position unit";
+ param rw  float stepgen.#.maxaccel[4]       = 1.0   "Acceleration in position units/s2";
+ param rw  u32   pwm.#.freq[4]               = 0     "PWM frequency in Hz 0...65000";
  
 /*---------------- ---------------------*/
 
@@ -62,8 +62,8 @@ license "GPL"; // indicates GPL v2 or later
 union {
     uint8_t rxbuf[BUFSIZE];
     struct {
-        int32_t pos[3];
-        float   vel[3];
+        int32_t pos[4];
+        float   vel[4];
         uint8_t control;
         uint8_t io;
     } fb;
@@ -73,14 +73,14 @@ union {
     uint8_t txbuf[BUFSIZE];
     struct {
         union {
-            int32_t pos[3];
-            int32_t dirsetup[3];
-            int32_t accel[3];
+            int32_t pos[4];
+            int32_t dirsetup[4];
+            int32_t accel[4];
         };
-        float vel[3];
+        float vel[4];
         uint8_t control;
         uint8_t io;
-        uint16_t pwm[6];
+        uint16_t pwm[4];
     } cmd;
 } Send = { 0 };
 
@@ -142,11 +142,11 @@ FUNCTION(_)
     if (enable) Send.cmd.control = CTRL_ENABLE;
     if (ready) {
         Send.cmd.control |= CTRL_READY;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             Send.cmd.vel[i] = (float)stepgen_velocity_cmd(i) * (float)stepgen_position_scale(i);
             Send.cmd.pos[i] = (float)stepgen_position_cmd(i) * (float)stepgen_position_scale(i);
         }
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 4; i++) {
             if (out(i)) Send.cmd.io |= 1 << i;
             Send.cmd.pwm[i] = (float)pwm(i) * 1023.0f;
             if (Send.cmd.pwm[i] > 1023) Send.cmd.pwm[i] = 1023;
@@ -154,13 +154,13 @@ FUNCTION(_)
     } else {
         if (!(Recv.fb.control & CTRL_DIRSETUP)) {
             Send.cmd.control = CTRL_DIRSETUP;
-            for (int i = 0; i < 3; i++) Send.cmd.dirsetup[i] = stepgen_dirsetup(i);
+            for (int i = 0; i < 4; i++) Send.cmd.dirsetup[i] = stepgen_dirsetup(i);
         } else if (!(Recv.fb.control & CTRL_ACCEL)) {
             Send.cmd.control = CTRL_ACCEL;
-            for (int i = 0; i < 3; i++) Send.cmd.accel[i] = (float)stepgen_maxaccel(i) * (float)stepgen_position_scale(i);
+            for (int i = 0; i < 4; i++) Send.cmd.accel[i] = (float)stepgen_maxaccel(i) * (float)stepgen_position_scale(i);
         } else if (!(Recv.fb.control & CTRL_PWMFREQ)) {
             Send.cmd.control = CTRL_PWMFREQ;
-            for (int i = 0; i < 6; i++) Send.cmd.pwm[i] = pwm_freq(i);
+            for (int i = 0; i < 4; i++) Send.cmd.pwm[i] = pwm_freq(i);
         }
     }
     uint8_t chk = 71;
@@ -175,7 +175,7 @@ FUNCTION(_)
         if (n < 0) ready = 0;
         else {
             lp--;
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 4; i++) {
                 stepgen_position_fb(i) = Recv.fb.pos[i] / (float)stepgen_position_scale(i);
                 stepgen_velocity_fb(i) = Recv.fb.vel[i] / (float)stepgen_position_scale(i);
             }

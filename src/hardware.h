@@ -11,8 +11,8 @@
  *       GPIO  5 -> W5500 SCS
  *       GPIO 12 -> step-0            -[100R]-(DSUB - 1)
  *       GPIO 13 -> dir-0             -[100R]-(DSUB - 2)
- *       GPIO 14 -> OUT-04 or PWM-04
- *       GPIO 15 -> OUT-05 or PWM-05
+ *       GPIO 14 -> step-3
+ *       GPIO 15 -> dir-3
  * (RX2) GPIO 16 -> step-1            -[100R]-(DSUB - 3)
  * (TX2) GPIO 17 -> dir-1             -[100R]-(DSUB - 4)
  *       GPIO 18 -> W5500 SCLK
@@ -120,6 +120,13 @@
 #define DIR_2_H REGISTER_WRITE(GPIO_OUT_W1TS_REG, BIT22)
 #define DIR_2_L REGISTER_WRITE(GPIO_OUT_W1TC_REG, BIT22)
 
+#define STEP_3_PIN 14
+#define STEP_3_H REGISTER_WRITE(GPIO_OUT_W1TS_REG, BIT14)
+#define STEP_3_L REGISTER_WRITE(GPIO_OUT_W1TC_REG, BIT14)
+#define DIR_3_PIN 15
+#define DIR_3_H REGISTER_WRITE(GPIO_OUT_W1TS_REG, BIT15)
+#define DIR_3_L REGISTER_WRITE(GPIO_OUT_W1TC_REG, BIT15)
+
 /*==================================================================*/
 
 #define OUT_00_PIN 2
@@ -134,12 +141,6 @@
 #define OUT_03_PIN 1
 #define OUT_03_H REGISTER_WRITE(GPIO_OUT_W1TS_REG, BIT1)
 #define OUT_03_L REGISTER_WRITE(GPIO_OUT_W1TC_REG, BIT1)
-#define OUT_04_PIN 14
-#define OUT_04_H REGISTER_WRITE(GPIO_OUT_W1TS_REG, BIT14)
-#define OUT_04_L REGISTER_WRITE(GPIO_OUT_W1TC_REG, BIT14)
-#define OUT_05_PIN 15
-#define OUT_05_H REGISTER_WRITE(GPIO_OUT_W1TS_REG, BIT15)
-#define OUT_05_L REGISTER_WRITE(GPIO_OUT_W1TC_REG, BIT15)
 
 /*==================================================================*/
 

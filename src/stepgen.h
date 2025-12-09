@@ -22,6 +22,7 @@
 #define timer_0_enable_alarm TIMERG0.hw_timer[0].config.tx_alarm_en = 1
 //#define timer_0_enable_alarm TIMERG0.hw_timer[0].config.alarm_en = 1
 
+
 //#define timer_1_set_alarm_value(alarm_val) timer_group_set_alarm_value_in_isr(TIMER_GROUP_0, TIMER_1, alarm_val)
 #define timer_1_set_alarm_value(alarm_val) TIMERG0.hw_timer[1].alarmlo.tx_alarm_lo = alarm_val
 //#define timer_1_set_alarm_value(alarm_val) TIMERG0.hw_timer[1].alarm_low = alarm_val
@@ -34,6 +35,7 @@
 #define timer_1_enable_alarm TIMERG0.hw_timer[1].config.tx_alarm_en = 1
 //#define timer_1_enable_alarm TIMERG0.hw_timer[1].config.alarm_en = 1
 
+
 //#define timer_2_set_alarm_value(alarm_val) timer_group_set_alarm_value_in_isr(TIMER_GROUP_1, TIMER_0, alarm_val)
 #define timer_2_set_alarm_value(alarm_val) TIMERG1.hw_timer[0].alarmlo.tx_alarm_lo = alarm_val
 //#define timer_2_set_alarm_value(alarm_val) TIMERG1.hw_timer[0].alarm_low = alarm_val
@@ -45,6 +47,20 @@
 //#define timer_2_enable_alarm timer_group_enable_alarm_in_isr(TIMER_GROUP_1, TIMER_0)
 #define timer_2_enable_alarm TIMERG1.hw_timer[0].config.tx_alarm_en = 1
 //#define timer_2_enable_alarm TIMERG1.hw_timer[0].config.alarm_en = 1
+
+
+//#define timer_3_set_alarm_value(alarm_val) timer_group_set_alarm_value_in_isr(TIMER_GROUP_1, TIMER_1, alarm_val)
+#define timer_3_set_alarm_value(alarm_val) TIMERG1.hw_timer[1].alarmlo.tx_alarm_lo = alarm_val
+//#define timer_3_set_alarm_value(alarm_val) TIMERG1.hw_timer[1].alarm_low = alarm_val
+
+//#define timer_3_clear_interrupt timer_group_clr_intr_status_in_isr(TIMER_GROUP_1, TIMER_1)
+#define timer_3_clear_interrupt TIMERG1.int_clr_timers.t1_int_clr = 1
+//#define timer_3_clear_interrupt TIMERG1.int_clr_timers.t1 = 1
+
+//#define timer_3_enable_alarm timer_group_enable_alarm_in_isr(TIMER_GROUP_1, TIMER_1)
+#define timer_3_enable_alarm TIMERG1.hw_timer[1].config.tx_alarm_en = 1
+//#define timer_3_enable_alarm TIMERG1.hw_timer[1].config.alarm_en = 1
+
 
 void IRAM_ATTR timer_0_isr(void* arg)
 {
@@ -154,6 +170,42 @@ void IRAM_ATTR timer_2_isr(void* arg)
     timer_2_enable_alarm;
 }
 
+void IRAM_ATTR timer_3_isr(void* arg)
+{
+    static int _step = 0;
+    static int _dir = 0;
+    static uint32_t _t = 0;
+
+    if (_step == 0) {
+        _t = T_half[3];
+        if (_t) {
+            STEP_3_H;
+            timer_3_set_alarm_value(_t);
+            (_dir == 0) ? --fb.pos[3] : ++fb.pos[3];
+            _step = 1;
+            math[3] = 1;
+        } else {
+            if (dirChange[3]) {
+                (_dir == 0) ? DIR_3_H : DIR_3_L;
+                timer_3_set_alarm_value(dirSetup[3]);
+                dir[3] = _dir ^= 1;
+                dirChange[3] = 0;
+                math[3] = 1;
+            } else {
+                timer_3_set_alarm_value(10000UL);
+                math[3] = 1;
+            }
+        }
+    } else {
+        STEP_3_L;
+        timer_3_set_alarm_value(_t);
+        _step = 0;
+    }
+
+    timer_3_clear_interrupt;
+    timer_3_enable_alarm;
+}
+
 void IRAM_ATTR timer__init(timer_group_t group, timer_idx_t idx)
 {
     // Select and initialize basic parameters of the timer
@@ -184,8 +236,8 @@ void IRAM_ATTR timer__init(timer_group_t group, timer_idx_t idx)
     } else if (group == TIMER_GROUP_1) {
         if (idx == TIMER_0)
             timer_isr_register(group, idx, timer_2_isr, NULL, ESP_INTR_FLAG_IRAM, NULL);
-        // else if (idx == TIMER_1)
-        //  timer_isr_register(group, idx, timer_3_isr, (void*)((idx << 1) | group), ESP_INTR_FLAG_IRAM, NULL);
+        else if (idx == TIMER_1)
+            timer_isr_register(group, idx, timer_3_isr, NULL, ESP_INTR_FLAG_IRAM, NULL);
     }
 
     timer_start(group, idx);
@@ -241,12 +293,19 @@ void IRAM_ATTR stepgen_task(void* arg)
     gpio_reset_pin((gpio_num_t)DIR_2_PIN);
     gpio_set_direction((gpio_num_t)DIR_2_PIN, GPIO_MODE_OUTPUT);
 
+    gpio_reset_pin((gpio_num_t)STEP_3_PIN);
+    gpio_set_direction((gpio_num_t)STEP_2_PIN, GPIO_MODE_OUTPUT);
+
+    gpio_reset_pin((gpio_num_t)DIR_3_PIN);
+    gpio_set_direction((gpio_num_t)DIR_3_PIN, GPIO_MODE_OUTPUT);
+
     timer__init(TIMER_GROUP_0, TIMER_0);
     timer__init(TIMER_GROUP_0, TIMER_1);
     timer__init(TIMER_GROUP_1, TIMER_0);
+    timer__init(TIMER_GROUP_1, TIMER_1);
 
     for (;;) {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 4; ++i) {
             if (math[i]) {
                 if (accelStep[i]) {
                     if (dir[i] == cmd_dir[i]) {

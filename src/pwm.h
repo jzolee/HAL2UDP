@@ -2,7 +2,7 @@
 
 #include "driver/ledc.h"
 
-#define MAX_PWM_CHANNELS 6
+#define MAX_PWM_CHANNELS 4
 #define MAX_LEDCTIMERS   4
 
 typedef struct {
